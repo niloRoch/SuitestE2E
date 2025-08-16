@@ -108,13 +108,10 @@ Este projeto está sob a licença MIT.
 [![Email](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:nilo.roch4@gmail.com)
 
 
-#
-<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%">
-
-
-![Footer](https://capsule-render.vercel.app/api?type=waving&color=FF6B6B&height=100&section=footer&text=Thanks%20for%20exploring%20the%20insights&fontSize=16&fontColor=ffffff&animation=twinkling)
+![Footer](https://capsule-render.vercel.app/api?type=waving&color=FF6B6B&height=100&section=footer&text=Thanks%20for%20exploring&fontSize=16&fontColor=ffffff&animation=twinkling)
 
 </div>
 
 ---
+
 
