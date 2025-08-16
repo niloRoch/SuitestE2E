@@ -1,0 +1,27 @@
+yaml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    command: streamlit run app/main.py --server.address=0.0.0.0 --server.port=8501
+    volumes:
+      - ./app:/app/app
+  
+  tests:
+    build: .
+    depends_on:
+      - app
+    environment:
+      - STREAMLIT_URL=http://app:8501
+    volumes:
+      - ./tests:/app/tests
+      - ./reports:/app/reports
+      - ./screenshots:/app/screenshots
+    command: |
+      sh -c "
+        sleep 10 &&
+        xvfb-run -a pytest tests/test_e2e/ -v --html=reports/report.html --self-contained-html
+      "
