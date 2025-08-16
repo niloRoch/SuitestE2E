@@ -5,26 +5,32 @@ Frontend completo com design responsivo e funcionalidades avançadas
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import base64
-from pathlib import Path
 import json
 import time
+import numpy as np
+
+# Imports opcionais para gráficos
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    st.warning("⚠️ Plotly não está instalado. Alguns gráficos serão substituídos por visualizações alternativas.")
 
 # ================================
 # CONFIGURAÇÃO DA PÁGINA
 # ================================
 
 st.set_page_config(
-    page_title="SuiteE2E",
+    page_title="Meu Portfolio E2E",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://github.com/niloRoch/SuiteE2E',
-        'Report a bug': "https://github.com/niloRoch/portfolio/issues",
+        'Get Help': 'https://github.com/seu-usuario/portfolio',
+        'Report a bug': "https://github.com/seu-usuario/portfolio/issues",
         'About': "Portfolio E2E com testes automatizados"
     }
 )
@@ -414,18 +420,30 @@ def show_home_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        fig = px.bar(df, x='Tecnologia', y='Anos', 
-                     title='Anos de Experiência por Tecnologia',
-                     color='Anos',
-                     color_continuous_scale='viridis')
-        fig.update_layout(showlegend=False, height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            fig = px.bar(df, x='Tecnologia', y='Anos', 
+                         title='Anos de Experiência por Tecnologia',
+                         color='Anos',
+                         color_continuous_scale='viridis')
+            fig.update_layout(showlegend=False, height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📊 Anos de Experiência por Tecnologia**")
+            st.bar_chart(df.set_index('Tecnologia')['Anos'])
     
     with col2:
-        fig = px.pie(df, values='Projetos', names='Tecnologia', 
-                     title='Distribuição de Projetos por Tecnologia')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            fig = px.pie(df, values='Projetos', names='Tecnologia', 
+                         title='Distribuição de Projetos por Tecnologia')
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**🥧 Distribuição de Projetos por Tecnologia**")
+            # Criar visualização alternativa
+            for _, row in df.iterrows():
+                percentage = (row['Projetos'] / df['Projetos'].sum()) * 100
+                st.write(f"**{row['Tecnologia']}**: {row['Projetos']} projetos ({percentage:.1f}%)")
+                st.progress(percentage / 100)
 
 def show_about_page():
     """Página sobre com informações detalhadas"""
@@ -614,15 +632,20 @@ def show_projects_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        tech_df = pd.DataFrame(list(tech_count.items()), columns=['Tecnologia', 'Projetos'])
-        tech_df = tech_df.sort_values('Projetos', ascending=True)
-        
-        fig = px.bar(tech_df, x='Projetos', y='Tecnologia', orientation='h',
-                     title='Tecnologias Mais Utilizadas',
-                     color='Projetos',
-                     color_continuous_scale='viridis')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            tech_df = pd.DataFrame(list(tech_count.items()), columns=['Tecnologia', 'Projetos'])
+            tech_df = tech_df.sort_values('Projetos', ascending=True)
+            
+            fig = px.bar(tech_df, x='Projetos', y='Tecnologia', orientation='h',
+                         title='Tecnologias Mais Utilizadas',
+                         color='Projetos',
+                         color_continuous_scale='viridis')
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📊 Tecnologias Mais Utilizadas**")
+            tech_df = pd.DataFrame(list(tech_count.items()), columns=['Tecnologia', 'Projetos'])
+            st.bar_chart(tech_df.set_index('Tecnologia'))
     
     with col2:
         # Status dos projetos
@@ -631,11 +654,18 @@ def show_projects_page():
             status = project['status']
             status_count[status] = status_count.get(status, 0) + 1
         
-        fig = px.pie(values=list(status_count.values()), 
-                     names=list(status_count.keys()),
-                     title='Status dos Projetos')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            fig = px.pie(values=list(status_count.values()), 
+                         names=list(status_count.keys()),
+                         title='Status dos Projetos')
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📈 Status dos Projetos**")
+            for status, count in status_count.items():
+                percentage = (count / sum(status_count.values())) * 100
+                st.write(f"**{status}**: {count} ({percentage:.1f}%)")
+                st.progress(percentage / 100)
 
 def show_contact_page():
     """Página de contato com formulário funcional"""
@@ -800,22 +830,31 @@ def show_dashboard_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        # Gráfico de commits ao longo do tempo
-        fig = px.line(df_activity, x='Data', y='Commits', 
-                     title='Commits por Dia',
-                     color_discrete_sequence=['#667eea'])
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            # Gráfico de commits ao longo do tempo
+            fig = px.line(df_activity, x='Data', y='Commits', 
+                         title='Commits por Dia',
+                         color_discrete_sequence=['#667eea'])
+            fig.update_layout(height=300)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📈 Commits por Dia**")
+            st.line_chart(df_activity.set_index('Data')['Commits'])
     
     with col2:
-        # Gráfico de linhas de código
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df_activity['Data'], y=df_activity['Lines Added'],
-                                mode='lines', name='Adicionadas', line=dict(color='#10B981')))
-        fig.add_trace(go.Scatter(x=df_activity['Data'], y=df_activity['Lines Removed'],
-                                mode='lines', name='Removidas', line=dict(color='#EF4444')))
-        fig.update_layout(title='Linhas de Código por Dia', height=300)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            # Gráfico de linhas de código
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df_activity['Data'], y=df_activity['Lines Added'],
+                                    mode='lines', name='Adicionadas', line=dict(color='#10B981')))
+            fig.add_trace(go.Scatter(x=df_activity['Data'], y=df_activity['Lines Removed'],
+                                    mode='lines', name='Removidas', line=dict(color='#EF4444')))
+            fig.update_layout(title='Linhas de Código por Dia', height=300)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📊 Linhas de Código por Dia**")
+            chart_data = df_activity.set_index('Data')[['Lines Added', 'Lines Removed']]
+            st.line_chart(chart_data)
     
     # Linguagens mais usadas
     st.markdown("### 💻 Linguagens Mais Utilizadas")
@@ -831,49 +870,83 @@ def show_dashboard_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        fig = px.bar(df_langs, x='Linguagem', y='Horas',
-                     title='Horas por Linguagem (Últimos 3 meses)',
-                     color='Horas',
-                     color_continuous_scale='viridis')
-        fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            fig = px.bar(df_langs, x='Linguagem', y='Horas',
+                         title='Horas por Linguagem (Últimos 3 meses)',
+                         color='Horas',
+                         color_continuous_scale='viridis')
+            fig.update_layout(height=400, showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**⏰ Horas por Linguagem (Últimos 3 meses)**")
+            st.bar_chart(df_langs.set_index('Linguagem')['Horas'])
     
     with col2:
-        fig = px.pie(df_langs, values='Projetos', names='Linguagem',
-                     title='Distribuição por Projetos')
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        if PLOTLY_AVAILABLE:
+            fig = px.pie(df_langs, values='Projetos', names='Linguagem',
+                         title='Distribuição por Projetos')
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown("**📊 Distribuição por Projetos**")
+            for _, row in df_langs.iterrows():
+                percentage = (row['Projetos'] / df_langs['Projetos'].sum()) * 100
+                st.write(f"**{row['Linguagem']}**: {row['Projetos']} projetos ({percentage:.1f}%)")
+                st.progress(percentage / 100)
     
     # Heatmap de atividade
     st.markdown("### 🔥 Heatmap de Atividade")
     
-    # Criar dados para heatmap (simulando GitHub)
-    import numpy as np
-    
-    weeks = 52
-    days = 7
-    activity_data = np.random.poisson(2, (days, weeks))
-    
-    fig = go.Figure(data=go.Heatmap(
-        z=activity_data,
-        colorscale='Greens',
-        showscale=True,
-        hovertemplate='Dia: %{y}<br>Semana: %{x}<br>Commits: %{z}<extra></extra>'
-    ))
-    
-    fig.update_layout(
-        title='Atividade de Commits (Últimos 12 meses)',
-        xaxis_title='Semanas',
-        yaxis_title='Dias da Semana',
-        height=200,
-        yaxis=dict(
-            tickmode='array',
-            tickvals=list(range(7)),
-            ticktext=['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+    if PLOTLY_AVAILABLE:
+        # Criar dados para heatmap (simulando GitHub)
+        weeks = 52
+        days = 7
+        activity_data = np.random.poisson(2, (days, weeks))
+        
+        fig = go.Figure(data=go.Heatmap(
+            z=activity_data,
+            colorscale='Greens',
+            showscale=True,
+            hovertemplate='Dia: %{y}<br>Semana: %{x}<br>Commits: %{z}<extra></extra>'
+        ))
+        
+        fig.update_layout(
+            title='Atividade de Commits (Últimos 12 meses)',
+            xaxis_title='Semanas',
+            yaxis_title='Dias da Semana',
+            height=200,
+            yaxis=dict(
+                tickmode='array',
+                tickvals=list(range(7)),
+                ticktext=['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+            )
         )
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+        
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        # Versão alternativa sem plotly
+        st.markdown("**📊 Resumo de Atividade (Últimos 12 meses)**")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Commits", "1,247", "↗️ +15%")
+        with col2:
+            st.metric("Dias Ativos", "298", "↗️ +8%")
+        with col3:
+            st.metric("Melhor Streak", "45 dias", "🔥")
+        with col4:
+            st.metric("Média/dia", "4.2", "↗️ +0.3")
+        
+        # Atividade por dia da semana
+        dias_semana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+        atividade_semanal = [18, 22, 25, 20, 15, 8, 5]
+        
+        df_semana = pd.DataFrame({
+            'Dia': dias_semana,
+            'Commits': atividade_semanal
+        })
+        
+        st.bar_chart(df_semana.set_index('Dia'))
     
     # Últimas atividades
     st.markdown("### 📝 Últimas Atividades")
@@ -1005,9 +1078,6 @@ def main():
 # ================================
 
 if __name__ == "__main__":
-    # Imports necessários para funcionalidades avançadas
-    import numpy as np
-    
     # Configurações adicionais
     st.markdown("""
     <script>
