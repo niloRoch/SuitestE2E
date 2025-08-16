@@ -11,7 +11,7 @@ import queue
 
 # Configuração da página
 st.set_page_config(
-    page_title="Portfolio E2E Testing Suite",
+    page_title="E2E Testing Suite",
     page_icon="🧪",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -153,7 +153,7 @@ def parse_pytest_output(output):
 # Interface principal
 def main():
     # Header
-    st.markdown('<h1 class="main-header">🧪 Portfolio E2E Testing Suite</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🧪 E2E Testing Suite</h1>', unsafe_allow_html=True)
     
     # Sidebar - Configurações
     with st.sidebar:
